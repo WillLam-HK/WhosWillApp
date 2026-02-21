@@ -2,60 +2,52 @@
 //  ContentView.swift
 //  WhosWill
 //
-//  Created by Lam Wun Yin on 21/2/2026.
+//  Main tab navigation: Home, Skills, Projects, Contact.
 //
 
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @State private var appState = AppState()
+    @State private var selectedTab = 0
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
+        TabView(selection: $selectedTab) {
+            HomeView(selectedTab: $selectedTab)
+                .tabItem {
+                    Label(appState.t.nav.home, systemImage: "house.fill")
                 }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-        } detail: {
-            Text("Select an item")
-        }
-    }
+                .tag(0)
+                .accessibilityLabel(appState.t.nav.home)
+                .accessibilityHint("Shows featured projects and tagline")
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
+            SkillsView()
+                .tabItem {
+                    Label(appState.t.nav.skills, systemImage: "brain.head.profile")
+                }
+                .tag(1)
+                .accessibilityLabel(appState.t.nav.skills)
 
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
+            ProjectsListView()
+                .tabItem {
+                    Label(appState.t.nav.projects, systemImage: "folder.fill")
+                }
+                .tag(2)
+                .accessibilityLabel(appState.t.nav.projects)
+
+            ContactView()
+                .tabItem {
+                    Label(appState.t.nav.contact, systemImage: "envelope.fill")
+                }
+                .tag(3)
+                .accessibilityLabel(appState.t.nav.contact)
         }
+        .environment(appState)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Main navigation")
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }
